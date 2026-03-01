@@ -1,0 +1,6 @@
+name: flow-ai-engine
+services:
+  web:
+    project: .
+    language: js
+    host: containerapp
