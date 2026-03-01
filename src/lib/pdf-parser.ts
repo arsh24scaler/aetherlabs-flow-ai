@@ -39,10 +39,9 @@ async function runAzureOCR(pdfBuffer: Buffer): Promise<string> {
         return 'No extractable text found and OCR API keys missing.';
     }
 
-    // Usually calls out to Azure Computer Vision "Read API" -> which handles multi-page PDFs
-    // For this boilerplate, simulating the API structure that analyzes a layout.
     try {
-      const response = await fetch(`${endpoint}/documentModels/prebuilt-layout:analyze?api-version=2023-07-31`, {
+      // Azure Computer Vision v3.2 Read API
+      const response = await fetch(`${endpoint}/vision/v3.2/read/analyze`, {
         method: 'POST',
         headers: {
             'Ocp-Apim-Subscription-Key': key,
@@ -51,7 +50,7 @@ async function runAzureOCR(pdfBuffer: Buffer): Promise<string> {
         body: new Blob([pdfBuffer as any], { type: 'application/pdf' })
       });
   
-      if (!response.ok) {
+      if (response.status !== 202) {
           throw new Error(`Azure Vision API returned ${response.status}: ${await response.text()}`);
       }
       
@@ -61,7 +60,10 @@ async function runAzureOCR(pdfBuffer: Buffer): Promise<string> {
       // Polling the completion of OCR.
       let ocrCompleted = false;
       let extractContent = '';
-      while(!ocrCompleted) {
+      let attempts = 0;
+      
+      while(!ocrCompleted && attempts < 30) {
+        attempts++;
         await new Promise(r => setTimeout(r, 2000));
         const statusRes = await fetch(operationLocation, {
             headers: { 'Ocp-Apim-Subscription-Key': key }
@@ -70,13 +72,23 @@ async function runAzureOCR(pdfBuffer: Buffer): Promise<string> {
         const json = await statusRes.json();
         if (json.status === 'succeeded') {
             ocrCompleted = true;
-            extractContent = json.analyzeResult.content;
+            // Computer Vision v3.2 formatting:
+            if (json.analyzeResult && json.analyzeResult.readResults) {
+                const pages = json.analyzeResult.readResults;
+                for (const page of pages) {
+                    if (page.lines) {
+                        for (const line of page.lines) {
+                            extractContent += line.text + "\n";
+                        }
+                    }
+                }
+            }
         } else if (json.status === 'failed') {
             throw new Error('Azure OCR Job Failed');
         }
       }
 
-      return extractContent;
+      return extractContent || 'Failed to extract text via OCR';
 
     } catch(err: any) {
         console.error("Azure OCR completely failed:", err);

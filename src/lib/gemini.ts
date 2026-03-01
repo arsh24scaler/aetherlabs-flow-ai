@@ -10,8 +10,8 @@ function getGeminiModel() {
     if (!API_KEY) throw new Error("Missing Gemini key.");
     
     _genAI = new GoogleGenerativeAI(API_KEY);
-    // We use 1.5-pro or 1.5-flash. Flash is great for speed and cost.
-    _model = _genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // We use gemini-2.0-flash. Flash is great for speed and cost.
+    _model = _genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     return _model;
 }
 
