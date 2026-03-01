@@ -119,3 +119,6 @@ export async function processQueue() {
     processError: handleError
   });
 }
+
+// Start the queue listener
+processQueue().catch(console.error);
