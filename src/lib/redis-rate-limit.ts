@@ -6,7 +6,7 @@ let redisClient: Redis;
 
 if (process.env.REDIS_URL) {
     if (process.env.REDIS_URL.includes(',')) {
-        // Parse Azure Cache for Redis connection string format
+        // Parse Azure Cache for Redis connection string forma
         const parts = process.env.REDIS_URL.split(',');
         const hostPort = parts[0].split(':');
         const passwordPart = parts.find(p => p.startsWith('password='));
