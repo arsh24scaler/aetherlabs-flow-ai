@@ -53,8 +53,9 @@ export default function Home() {
       setJobId(data.jobId)
       // Redirect to the analysis view with the jobId
       router.push(`/analysis?jobId=${data.jobId}`)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const error = err as Error
+      setError(error.message)
       setIsUploading(false)
     }
   }
@@ -139,7 +140,7 @@ export default function Home() {
                 <Activity className="w-6 h-6 text-foreground" />
             </div>
             <h4 className="font-semibold text-lg">Scenario Simulator</h4>
-            <p className="text-sm text-muted-foreground">Ask "What if I get into a fender bender?" and predict exact out-of-pocket costs.</p>
+            <p className="text-sm text-muted-foreground">Ask &quot;What if I get into a fender bender?&quot; and predict exact out-of-pocket costs.</p>
         </div>
       </div>
     </div>

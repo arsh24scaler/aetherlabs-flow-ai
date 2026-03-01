@@ -96,13 +96,13 @@ export function hashDocument(buffer: Buffer): string {
 /**
  * Cache and Retrieve previous Gemini Analysis by Document Hash.
  */
-export async function getCachedAnalysis(hash: string): Promise<any | null> {
+export async function getCachedAnalysis(hash: string): Promise<unknown | null> {
     const res = await redis.get(`cache:analysis:${hash}`);
     if (res) return JSON.parse(res);
     return null;
 }
 
-export async function setCachedAnalysis(hash: string, analysis: any): Promise<void> {
+export async function setCachedAnalysis(hash: string, analysis: unknown): Promise<void> {
     // Cache for 30 days
     await redis.set(`cache:analysis:${hash}`, JSON.stringify(analysis), 'EX', 2592000);
 }

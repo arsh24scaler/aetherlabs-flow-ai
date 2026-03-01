@@ -21,7 +21,7 @@ export const options = {
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 
-export default function () {
+export default function stressTest() {
     const fd = new FormData();
     // Emulate 1-page health policy
     fd.append('file', http.file(pdfFile, 'dummy-policy.pdf', 'application/pdf'));

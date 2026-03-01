@@ -1,4 +1,4 @@
-import { ServiceBusClient, delay } from "@azure/service-bus";
+import { ServiceBusClient, ServiceBusReceivedMessage, ProcessErrorArgs } from "@azure/service-bus";
 import { parsePdfWithFallback } from "./pdf-parser";
 import { analyzePolicyText } from "./gemini";
 import { connectToDatabase, Report } from "./db";
@@ -23,7 +23,6 @@ server.listen(PORT, () => {
 
 const connectionString = process.env.SERVICE_BUS_CONNECTION_STRING;
 const queueName = "pdf-processing-queue";
-const deadLetterQueue = "pdf-deadletter-queue";
 
 export async function processQueue() {
   if (!connectionString) {
@@ -36,7 +35,7 @@ export async function processQueue() {
   
   await connectToDatabase();
 
-  const handleMessage = async (message: any) => {
+  const handleMessage = async (message: ServiceBusReceivedMessage) => {
     try {
       const jobId = message.body.jobId;
       console.log(`[QueueWorker] Received job: ${jobId}`);
@@ -46,7 +45,13 @@ export async function processQueue() {
       console.log(`[QueueWorker] Job ${jobId} document hash: ${hash}`);
 
       // Check redis cache first
-      let analysisResult = await getCachedAnalysis(hash);
+      interface AIResult {
+          metadata: unknown;
+          riskScore: number;
+          flags: string[];
+          tokensUsed: number;
+      }
+      let analysisResult: AIResult | null = (await getCachedAnalysis(hash)) as AIResult | null;
       let usedOCR = false;
       let text = ""; // Actually needed to be saved temporarily for chat (we can store in Redis)
 
@@ -75,41 +80,43 @@ export async function processQueue() {
       // Save extracted text temporarily into Redis for the Chat bot module
       await redis.set(`chat:context:${jobId}`, text, 'EX', 86400); // Expires 24hr
 
-      // Update Database
-      console.log(`[QueueWorker] Job ${jobId} updating Cosmos DB...`);
-      await Report.findOneAndUpdate({ jobId }, {
-          status: 'COMPLETED',
-          policyHash: hash,
-          metadataJSON: analysisResult.metadata,
-          riskScore: analysisResult.riskScore,
-          flags: analysisResult.flags,
-          tokensUsed: analysisResult.tokensUsed || 0,
-          usedOCR: usedOCR
-      });
+          // Update Database
+          console.log(`[QueueWorker] Job ${jobId} updating Cosmos DB...`);
+          const metadata = (analysisResult as { metadata: unknown }).metadata;
+          await Report.findOneAndUpdate({ jobId }, {
+              status: 'COMPLETED',
+              policyHash: hash,
+              metadataJSON: metadata,
+              riskScore: (analysisResult as { riskScore: number }).riskScore,
+              flags: (analysisResult as { flags: string[] }).flags,
+              tokensUsed: (analysisResult as { tokensUsed: number }).tokensUsed || 0,
+              usedOCR: usedOCR
+          });
 
       // We complete the message from the queue on success
       await receiver.completeMessage(message);
       console.log(`[QueueWorker] Job ${jobId} finalized and removed from queue.`);
 
-    } catch (err: any) {
-        console.error(`[QueueWorker] Processing Error for job ${message.body?.jobId || 'UNKNOWN'}:`, err);
+    } catch (err: unknown) {
+        const error = err as Error;
+        console.error(`[QueueWorker] Processing Error for job ${message.body?.jobId || 'UNKNOWN'}:`, error);
         // If it blows up, we deadletter it or mark as Error
         if (message.body?.jobId) {
             await Report.findOneAndUpdate({ jobId: message.body.jobId }, {
                 status: 'ERROR',
-                errorLog: err.message
+                errorLog: error.message
             });
         }
 
         await receiver.deadLetterMessage(message, {
             deadLetterReason: "Processing Crashed",
-            deadLetterErrorDescription: err.message,
+            deadLetterErrorDescription: error.message,
         });
         console.log(`[QueueWorker] Job ${message.body?.jobId || 'UNKNOWN'} deadlettered.`);
     }
   };
 
-  const handleError = async (args: any) => {
+  const handleError = async (args: ProcessErrorArgs) => {
     console.error(`Error processing queue: ${args.error.message}`);
   };
 

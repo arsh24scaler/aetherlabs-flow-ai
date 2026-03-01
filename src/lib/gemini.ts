@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 import { incrementGlobalTokens } from './redis-rate-limit';
 
 let _genAI: GoogleGenerativeAI | null = null;
-let _model: any = null;
+let _model: GenerativeModel | null = null;
 
 function getGeminiModel() {
     if (_model) return _model;
@@ -15,12 +15,27 @@ function getGeminiModel() {
     return _model;
 }
 
+export interface PolicyMetadata {
+    policyHolderName: string;
+    policyNumber: string;
+    policyType: string;
+    insurerName: string;
+    startDate: string;
+    expiryDate: string;
+    premiumAmount: number;
+    sumInsured: number;
+    deductibles: string;
+    riders: string[];
+    taxes: number;
+    noClaimBonus: string;
+}
+
 /**
  * Extracts strictly JSON metadata from unstructured text.
  * Calculates approximate token cost and logs it using Redis kill switch.
  */
 export async function analyzePolicyText(text: string): Promise<{
-    metadata: any; 
+    metadata: PolicyMetadata; 
     riskScore: number;
     flags: string[];
     tokensUsed: number;
@@ -80,8 +95,9 @@ Respond ONLY with valid JSON exactly matching this structure (no markdown wrappe
             tokensUsed: tokenEstimate
         };
 
-    } catch (e: any) {
-        throw new Error(`Gemini Parsing Error: ${e.message}`);
+    } catch (e: unknown) {
+        const error = e as Error;
+        throw new Error(`Gemini Parsing Error: ${error.message}`);
     }
 }
 

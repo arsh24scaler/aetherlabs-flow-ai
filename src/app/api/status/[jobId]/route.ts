@@ -34,7 +34,8 @@ export async function GET(
         // PENDING / QUEUED / PROCESSING
         return NextResponse.json({ status: report.status }, { status: 200 });
 
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const err = error as Error;
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

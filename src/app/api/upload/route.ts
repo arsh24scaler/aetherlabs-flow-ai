@@ -52,8 +52,9 @@ export async function POST(req: NextRequest) {
         // 5. Response
         return NextResponse.json({ jobId, message: 'Processing started in background' }, { status: 202 });
 
-    } catch (error: any) {
-        console.error("Upload API Error", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const err = error as Error;
+        console.error("Upload API Error", err);
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

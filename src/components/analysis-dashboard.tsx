@@ -13,12 +13,25 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 
 type JobStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED"
 
+interface PolicyMetadata {
+  policyNumber?: string;
+  premiumAmount?: string;
+  insurerName?: string;
+  policyType?: string;
+  policyHolderName?: string;
+  startDate?: string;
+  expiryDate?: string;
+  sumInsured?: string;
+  deductibles?: string;
+  [key: string]: unknown; // fallback for other fields
+}
+
 interface ReportData {
   jobId: string
   status: JobStatus
   riskScore?: number
   flags?: string[]
-  metadataJSON?: Record<string, any>
+  metadataJSON?: PolicyMetadata
   error?: string
 }
 
@@ -33,7 +46,7 @@ export function AnalysisDashboard() {
   // Simulation state
   const [simScenario, setSimScenario] = useState("")
   const [simLoading, setSimLoading] = useState(false)
-  const [simResult, setSimResult] = useState<any>(null)
+  const [simResult, setSimResult] = useState<unknown>(null)
 
   // Chat state
   const [chatMessage, setChatMessage] = useState("")
@@ -47,7 +60,7 @@ export function AnalysisDashboard() {
       return
     }
 
-    let intervalId: NodeJS.Timeout
+    // Initial progress
     let currentProgress = 10
 
     const pollStatus = async () => {
@@ -76,7 +89,7 @@ export function AnalysisDashboard() {
     }
 
     pollStatus()
-    intervalId = setInterval(pollStatus, 4000)
+    const intervalId = setInterval(pollStatus, 4000)
 
     return () => clearInterval(intervalId)
   }, [jobId])
@@ -133,12 +146,20 @@ export function AnalysisDashboard() {
       const data = await res.json()
       if (res.ok) setSimResult(data)
       else alert(data.error || 'Simulation failed')
-    } catch (e: any) {
-      alert(e.message)
+    } catch (e: unknown) {
+      const error = e as Error
+      alert(error.message)
     } finally {
       setSimLoading(false)
     }
   }
+
+  const sim = simResult as { 
+    covered: string; 
+    estimatedPayout?: string; 
+    outOfPocket?: string; 
+    clauseReference?: string; 
+  } | null;
 
   const handleChat = async () => {
     if (!chatMessage.trim()) return
@@ -159,8 +180,9 @@ export function AnalysisDashboard() {
       } else {
         setChatHistory(prev => [...prev, { role: 'ai', text: `Error: ${data.error}` }])
       }
-    } catch (e: any) {
-      setChatHistory(prev => [...prev, { role: 'ai', text: `System Error: ${e.message}` }])
+    } catch (e: unknown) {
+      const error = e as Error
+      setChatHistory(prev => [...prev, { role: 'ai', text: `System Error: ${error.message}` }])
     } finally {
       setChatLoading(false)
     }
@@ -299,27 +321,27 @@ export function AnalysisDashboard() {
                 </Button>
               </div>
 
-              {simResult && (
+              {sim && (
                 <div className="bg-secondary p-4 rounded-lg text-sm space-y-3 border shadow-inner">
                    <div className="flex justify-between items-start">
                      <span className="font-semibold text-muted-foreground">Coverage Status:</span>
-                     <Badge variant={simResult.covered === 'Yes' ? 'default' : simResult.covered === 'Conditional' ? 'secondary' : 'destructive'}>
-                       {simResult.covered}
+                     <Badge variant={sim.covered === 'Yes' ? 'default' : sim.covered === 'Conditional' ? 'secondary' : 'destructive'}>
+                       {sim.covered}
                      </Badge>
                    </div>
                    <div className="grid grid-cols-2 gap-4 mt-2">
                      <div>
                        <span className="block text-xs text-muted-foreground mb-1">AI Payout Est.</span>
-                       <span className="font-medium">{simResult.estimatedPayout || 'N/A'}</span>
+                       <span className="font-medium">{sim.estimatedPayout || 'N/A'}</span>
                      </div>
                      <div>
                        <span className="block text-xs text-muted-foreground mb-1">Out of Pocket</span>
-                       <span className="font-medium text-destructive">{simResult.outOfPocket || 'N/A'}</span>
+                       <span className="font-medium text-destructive">{sim.outOfPocket || 'N/A'}</span>
                      </div>
                    </div>
                    <div className="pt-2 border-t text-xs text-muted-foreground">
                      <span className="block font-semibold mb-1">Relevant Clause:</span>
-                     <span className="italic">{simResult.clauseReference || 'None referenced'}</span>
+                     <span className="italic">{sim.clauseReference || 'None referenced'}</span>
                    </div>
                 </div>
               )}

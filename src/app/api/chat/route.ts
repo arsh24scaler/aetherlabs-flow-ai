@@ -30,8 +30,9 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ reply: result.response });
 
-    } catch (error: any) {
-        console.error("Chat API Error", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const err = error as Error;
+        console.error("Chat API Error", err);
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

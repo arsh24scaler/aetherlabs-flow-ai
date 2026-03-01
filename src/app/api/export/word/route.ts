@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
                     ...Object.keys(m).map(k => new Paragraph({
                         children: [
                             new TextRun({ text: `${k}: `, bold: true }),
-                            new TextRun({ text: `${m[k]}` })
+                            new TextRun({ text: `${String(m[k as keyof typeof m])}` })
                         ]
                     })),
                     new Paragraph({ text: "", spacing: { after: 400 } }),
@@ -66,8 +66,9 @@ export async function GET(req: NextRequest) {
              }
         });
 
-    } catch (error: any) {
-        console.error("Word Generation Error", error);
+    } catch (error: unknown) {
+        const err = error as Error;
+        console.error("Word Generation Error", err);
         return NextResponse.json({ error: 'Generate failed' }, { status: 500 });
     }
 }

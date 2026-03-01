@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkGlobalTokenLimit, redis } from '@/lib/redis-rate-limit';
 import { connectToDatabase, Report } from '@/lib/db';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 import { incrementGlobalTokens } from '@/lib/redis-rate-limit';
 
 let _genAI: GoogleGenerativeAI | null = null;
-let _model: any = null;
+let _model: GenerativeModel | null = null;
 
 function getGeminiModel() {
     if (_model) return _model;
@@ -66,8 +66,9 @@ ${contextText}
 
         return NextResponse.json(parsed);
 
-    } catch (error: any) {
-        console.error("Simulation Error", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const err = error as Error;
+        console.error("Simulation Error", err);
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

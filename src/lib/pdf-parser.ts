@@ -1,11 +1,11 @@
-// @ts-ignore: pdf-parse types incorrectly declare no default export
+// @ts-expect-error: pdf-parse types incorrectly declare no default export
 import pdfParse from 'pdf-parse';
 
 export async function parsePdfWithFallback(pdfBuffer: Buffer): Promise<{ text: string, usedOCR: boolean }> {
   try {
     // 1. STANDARD EXTRACTION
     // TS/ESM interop can wrap default exports, so we check for nested defaults or if it's already a function
-    const parseFunc = typeof pdfParse === 'function' ? pdfParse : (pdfParse as any).default;
+    const parseFunc = typeof pdfParse === 'function' ? pdfParse : (pdfParse as { default?: (buf: Buffer) => Promise<{ text: string }> }).default;
     if (typeof parseFunc !== 'function') {
         throw new Error("Unable to resolve pdfParse function from module export: " + typeof pdfParse);
     }
@@ -54,7 +54,7 @@ async function runAzureOCR(pdfBuffer: Buffer): Promise<string> {
             'Ocp-Apim-Subscription-Key': key,
             'Content-Type': 'application/pdf'
         },
-        body: new Blob([pdfBuffer as any], { type: 'application/pdf' })
+        body: new Blob([new Uint8Array(pdfBuffer)], { type: 'application/pdf' })
       });
   
       if (response.status !== 202) {
@@ -97,7 +97,7 @@ async function runAzureOCR(pdfBuffer: Buffer): Promise<string> {
 
       return extractContent || 'Failed to extract text via OCR';
 
-    } catch(err: any) {
+    } catch(err: unknown) {
         console.error("Azure OCR completely failed:", err);
         return 'Failed to execute OCR on document.';
     }

@@ -51,8 +51,9 @@ export async function GET(req: NextRequest) {
              }
         });
 
-    } catch (error: any) {
-        console.error("Excel Generation Error", error);
+    } catch (error: unknown) {
+        const err = error as Error;
+        console.error("Excel Generation Error", err);
         return NextResponse.json({ error: 'Generate failed' }, { status: 500 });
     }
 }
