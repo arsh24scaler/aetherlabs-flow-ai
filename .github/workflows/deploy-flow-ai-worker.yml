@@ -6,6 +6,7 @@ on:
       - 'src/lib/queue-worker.ts'
       - 'Dockerfile.queue'
       - '.github/workflows/deploy-flow-ai-worker.yml'
+      - 'src/lib/redis-rate-limit.ts'
     branches:
       - main
 
