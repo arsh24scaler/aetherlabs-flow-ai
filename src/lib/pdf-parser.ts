@@ -1,9 +1,15 @@
-const pdfParse = require('pdf-parse');
+import pdfParse from 'pdf-parse';
 
 export async function parsePdfWithFallback(pdfBuffer: Buffer): Promise<{ text: string, usedOCR: boolean }> {
   try {
     // 1. STANDARD EXTRACTION
-    const data = await pdfParse(pdfBuffer);
+    // TS/ESM interop can wrap default exports, so we check for nested defaults or if it's already a function
+    const parseFunc = typeof pdfParse === 'function' ? pdfParse : (pdfParse as any).default;
+    if (typeof parseFunc !== 'function') {
+        throw new Error("Unable to resolve pdfParse function from module export: " + typeof pdfParse);
+    }
+    
+    const data = await parseFunc(pdfBuffer);
     const extract = data.text.trim();
 
     // 2. CHECK IF COMPREHENSIVE TEXT WAS FOUND
