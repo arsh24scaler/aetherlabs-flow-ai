@@ -47,7 +47,7 @@ You will need the following repository secrets:
 - `AZURE_RESOURCE_GROUP`: `aether-flow-free-tool-rg`
 - *(Optional but recommended)* Provide the App secrets via Github actions, or set these directly on the Azure Container Apps in the portal later.
 
-For the Application itself to run, the following Env Variables need to be available to the Container Apps:
+For the Application itself to run, the following Env Variables need to be available to the Container Apps
 - `MONGODB_URI`: The connection string from Step 1.
 - `REDIS_URL`: The access key/connection string from `aetherflowfreeredis`.
 - `GEMINI_API_KEY`: Your Google Gemini API Key.
