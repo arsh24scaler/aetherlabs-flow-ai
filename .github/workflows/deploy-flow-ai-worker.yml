@@ -59,7 +59,31 @@ jobs:
       
       - name: Deploy
         run: |
+          # Fetch the latest container app config
+          az containerapp show \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --output json > app.json
+          
+          NEW_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-$(echo ${{ github.sha }} | cut -c1-7)"
+          
+          # Inject new image and health probes using Python
+          python3 -c "
+          import json, sys
+          with open('app.json', 'r') as f:
+              data = json.load(f)
+          data['properties']['template']['containers'][0]['image'] = sys.argv[1]
+          data['properties']['template']['containers'][0]['probes'] = [
+              {'type': 'liveness', 'httpGet': {'path': '/health', 'port': 8080}, 'initialDelaySeconds': 15, 'periodSeconds': 30, 'timeoutSeconds': 5, 'failureThreshold': 3},
+              {'type': 'readiness', 'httpGet': {'path': '/health', 'port': 8080}, 'initialDelaySeconds': 5, 'periodSeconds': 10, 'timeoutSeconds': 5, 'failureThreshold': 3, 'successThreshold': 1},
+              {'type': 'startup', 'httpGet': {'path': '/health', 'port': 8080}, 'initialDelaySeconds': 5, 'periodSeconds': 10, 'timeoutSeconds': 5, 'failureThreshold': 30}
+          ]
+          with open('updated_app.json', 'w') as f:
+              json.dump(data, f)
+          " "$NEW_IMAGE"
+          
+          # Apply the updated configuration
           az containerapp update \
             --name ${{ env.CONTAINER_APP_NAME }} \
             --resource-group ${{ env.RESOURCE_GROUP }} \
-            --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-$(echo ${{ github.sha }} | cut -c1-7)
+            --yaml updated_app.json
