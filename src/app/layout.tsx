@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Sparkles } from "lucide-react";
+import { Sparkles, UserCircle } from "lucide-react";
 
-// (Create a tiny client component for the ThemeToggle or inline if possible. We should create a separate component for toggle).
-import { ThemeToggle } from "@/components/theme-toggle";
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,32 +30,37 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground flex flex-col`}
+        className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-[#0a0a0a] text-zinc-100 flex flex-col font-sans`}
       >
         <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
+          attribute="class"
+          defaultTheme="dark"
+          forcedTheme="dark"
+          disableTransitionOnChange
         >
-            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="container mx-auto max-w-6xl flex h-16 items-center justify-between px-4">
-                    <div className="flex flex-row items-center gap-2 font-bold text-xl tracking-tight cursor-pointer">
-                        <Sparkles className="w-5 h-5 text-blue-500" />
-                        <span>Flow AI</span>
-                        <span className="text-muted-foreground font-medium text-sm ml-2 hidden sm:inline-block">Policy Intelligence Engine</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <p className="text-xs text-muted-foreground mr-2 font-mono hidden md:block">by AetherLabs</p>
-                        <ThemeToggle />
-                    </div>
+          <header className="sticky top-0 z-50 w-full border-b border-zinc-800/50 bg-[#0a0a0a]/80 backdrop-blur-md">
+            <div className="container mx-auto max-w-6xl flex h-14 items-center justify-between px-6">
+              <div className="flex items-center gap-3 cursor-pointer">
+                <div className="flex items-center justify-center w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700">
+                  <Sparkles className="w-3.5 h-3.5 text-zinc-300" />
                 </div>
-            </header>
-            <main className="flex-1 overflow-x-hidden">
-                {children}
-            </main>
+                <span className="font-semibold text-zinc-100 tracking-tight text-[15px]">Flow AI</span>
+                <div className="w-[1px] h-4 bg-zinc-800 mx-1 hidden sm:block"></div>
+                <span className="text-zinc-500 font-medium text-[13px] hidden sm:block tracking-wide">Policy Intelligence Engine</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-[13px] text-zinc-500 font-medium hidden md:block tracking-wide">by AetherLabs</span>
+                <div className="w-8 h-8 rounded-full bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-center text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer">
+                  <UserCircle className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
+          </header>
+          <main className="flex-1 overflow-x-hidden">
+            {children}
+          </main>
         </ThemeProvider>
       </body>
     </html>

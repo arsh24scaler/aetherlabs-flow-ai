@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { useSearchParams } from "next/navigation"
-import { Loader2, Download, AlertTriangle, MessageSquare, Briefcase, FileText, CheckCircle2, XCircle } from "lucide-react"
+import { Loader2, Download, AlertTriangle, MessageSquare, Briefcase, FileText, CheckCircle2, XCircle, BrainCircuit, Activity } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -48,12 +48,6 @@ export function AnalysisDashboard() {
   const [simLoading, setSimLoading] = useState(false)
   const [simResult, setSimResult] = useState<unknown>(null)
 
-  // Chat state
-  const [chatMessage, setChatMessage] = useState("")
-  const [chatLoading, setChatLoading] = useState(false)
-  const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'ai', text: string }[]>([])
-  const chatEndRef = useRef<HTMLDivElement>(null)
-
   useEffect(() => {
     if (!jobId) {
       setLoading(false)
@@ -91,12 +85,7 @@ export function AnalysisDashboard() {
     pollStatus()
     const intervalId = setInterval(pollStatus, 4000)
 
-    return () => clearInterval(intervalId)
   }, [jobId])
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [chatHistory])
 
   if (!jobId) {
     return <div className="text-center font-mono py-20 text-muted-foreground">No Job ID provided. Return to home to upload a PDF.</div>
@@ -154,250 +143,208 @@ export function AnalysisDashboard() {
     }
   }
 
-  const sim = simResult as { 
-    covered: string; 
-    estimatedPayout?: string; 
-    outOfPocket?: string; 
-    clauseReference?: string; 
+  const sim = simResult as {
+    covered: string;
+    estimatedPayout?: string;
+    outOfPocket?: string;
+    clauseReference?: string;
   } | null;
 
-  const handleChat = async () => {
-    if (!chatMessage.trim()) return
-    const currentMsg = chatMessage
-    setChatMessage("")
-    setChatLoading(true)
-    setChatHistory(prev => [...prev, { role: 'user', text: currentMsg }])
-
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobId, message: currentMsg })
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setChatHistory(prev => [...prev, { role: 'ai', text: data.reply }])
-      } else {
-        setChatHistory(prev => [...prev, { role: 'ai', text: `Error: ${data.error}` }])
-      }
-    } catch (e: unknown) {
-      const error = e as Error
-      setChatHistory(prev => [...prev, { role: 'ai', text: `System Error: ${error.message}` }])
-    } finally {
-      setChatLoading(false)
-    }
-  }
-
   return (
-    <div className="space-y-6 fade-in duration-500 animate-in pt-8">
+    <div className="space-y-8 fade-in duration-500 animate-in pt-8 pb-16">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Intelligence Report</h1>
-          <p className="text-muted-foreground flex items-center gap-2 mt-1">
-            <FileText className="w-4 h-4" /> {metadataJSON.policyNumber || "Policy Document"}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/10 pb-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2 border border-white/10 rounded-lg bg-zinc-900 shadow-sm">
+              <FileText className="w-5 h-5 text-indigo-400" />
+            </div>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">Analysis complete</h1>
+          </div>
+          <p className="text-zinc-500 font-light tracking-wide mt-1 max-w-2xl">
+            {metadataJSON.policyNumber || "Document parsed and structured."} • {metadataJSON.policyHolderName || "Unknown Assured"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" asChild>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100" asChild>
             <a href={`/api/export/excel?jobId=${jobId}`} download>
-                <Download className="w-4 h-4 mr-2" /> Excel List
+              <Download className="w-4 h-4 mr-2" /> Export Data
             </a>
           </Button>
-          <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700" asChild>
+          <Button variant="default" size="sm" className="bg-zinc-100 text-zinc-900 hover:bg-white font-medium" asChild>
             <a href={`/api/export/word?jobId=${jobId}`} download>
-                <Download className="w-4 h-4 mr-2" /> Word Report
+              <Download className="w-4 h-4 mr-2" /> Download Report
             </a>
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Col - Data */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Risk Score</CardDescription>
-                <CardTitle className={`text-3xl ${riskScore > 70 ? 'text-destructive' : riskScore > 40 ? 'text-yellow-500' : 'text-green-500'}`}>
-                  {riskScore}
-                  <span className="text-sm text-muted-foreground">/100</span>
-                </CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Premium</CardDescription>
-                <CardTitle className="text-xl break-words">{metadataJSON.premiumAmount || "N/A"}</CardTitle>
-              </CardHeader>
-            </Card>
-            <Card className="sm:col-span-2">
-              <CardHeader className="pb-2">
-                <CardDescription>Insurer</CardDescription>
-                <CardTitle className="text-xl flex items-center gap-2 truncate">
-                  <Briefcase className="w-5 h-5 text-muted-foreground" />
-                  {metadataJSON.insurerName || "Unknown"}
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Column - Structural Data */}
+        <div className="lg:col-span-7 space-y-8">
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Extracted Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6 text-sm">
-                <div>
-                  <dt className="text-muted-foreground font-medium">Policy Type</dt>
-                  <dd className="font-medium mt-1">{metadataJSON.policyType}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground font-medium">Policy Holder</dt>
-                  <dd className="font-medium mt-1">{metadataJSON.policyHolderName}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground font-medium">Start Date</dt>
-                  <dd className="font-medium mt-1">{metadataJSON.startDate}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground font-medium">Expiry / Renewal</dt>
-                  <dd className="font-medium mt-1">{metadataJSON.expiryDate}</dd>
-                </div>
-                <div className="sm:col-span-2">
-                  <dt className="text-muted-foreground font-medium">Sum Insured Limit</dt>
-                  <dd className="font-medium mt-1">{metadataJSON.sumInsured || "Not Stated"}</dd>
-                </div>
-                <div className="sm:col-span-2">
-                  <dt className="text-muted-foreground font-medium">Deductibles</dt>
-                  <dd className="font-medium mt-1">{metadataJSON.deductibles}</dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
+          {/* Policy Metadata */}
+          <section className="space-y-4">
+            <h3 className="text-[13px] font-semibold tracking-widest text-zinc-500 uppercase">Policy Metadata</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-4 rounded-xl border border-white/5 bg-[#111111]">
+                <span className="block text-[12px] text-zinc-500 mb-1">Risk Score</span>
+                <span className="text-xl font-medium text-zinc-100">{riskScore}/100</span>
+              </div>
+              <div className="p-4 rounded-xl border border-white/5 bg-[#111111]">
+                <span className="block text-[12px] text-zinc-500 mb-1">Premium</span>
+                <span className="text-[15px] font-medium text-zinc-100 break-words">{metadataJSON.premiumAmount || "N/A"}</span>
+              </div>
+              <div className="p-4 rounded-xl border border-white/5 bg-[#111111] md:col-span-2">
+                <span className="block text-[12px] text-zinc-500 mb-1">Insurer</span>
+                <span className="text-[15px] font-medium text-zinc-100 truncate block">{metadataJSON.insurerName || "Unknown"}</span>
+              </div>
+            </div>
+          </section>
 
-          <Card className="border-destructive/30">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <AlertTriangle className="w-5 h-5" /> Risk Flags & Exclusions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          {/* Coverage Summary */}
+          <section className="space-y-4">
+            <h3 className="text-[13px] font-semibold tracking-widest text-zinc-500 uppercase">Coverage Summary</h3>
+            <div className="rounded-xl border border-white/5 bg-[#111111] overflow-hidden">
+              <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-white/5">
+                <div className="p-5 space-y-1">
+                  <span className="block text-[12px] text-zinc-500">Sum Insured Limit</span>
+                  <span className="block text-[15px] font-medium text-zinc-100">{metadataJSON.sumInsured || "Not Stated"}</span>
+                </div>
+                <div className="p-5 space-y-1">
+                  <span className="block text-[12px] text-zinc-500">Deductibles</span>
+                  <span className="block text-[15px] font-medium text-zinc-100">{metadataJSON.deductibles || "Not Stated"}</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x border-t divide-white/5 border-white/5">
+                <div className="p-5 space-y-1">
+                  <span className="block text-[12px] text-zinc-500">Start Date</span>
+                  <span className="block text-[15px] font-medium text-zinc-100">{metadataJSON.startDate || "N/A"}</span>
+                </div>
+                <div className="p-5 space-y-1">
+                  <span className="block text-[12px] text-zinc-500">Expiry / Renewal</span>
+                  <span className="block text-[15px] font-medium text-zinc-100">{metadataJSON.expiryDate || "N/A"}</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Key Clauses */}
+          <section className="space-y-4">
+            <h3 className="text-[13px] font-semibold tracking-widest text-zinc-500 uppercase">Key Clauses</h3>
+            <div className="rounded-xl border border-white/5 bg-[#111111] p-6 space-y-6 text-[14px]">
+              <div className="space-y-1">
+                <span className="text-zinc-400">Policy Type</span>
+                <p className="text-zinc-100 font-medium">{metadataJSON.policyType || "Unknown Type"}</p>
+              </div>
+              <div className="w-full h-px bg-white/5"></div>
+              <div className="space-y-1">
+                <span className="text-zinc-400">Insured Entity</span>
+                <p className="text-zinc-100 font-medium">{metadataJSON.policyHolderName || "Not specified"}</p>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        {/* Right Column - Intelligence */}
+        <div className="lg:col-span-5 space-y-8">
+
+          {/* AI Summary */}
+          <section className="space-y-4">
+            <h3 className="text-[13px] font-semibold tracking-widest text-zinc-500 uppercase flex items-center gap-2">
+              <BrainCircuit className="w-4 h-4 text-indigo-400" /> Executive Summary
+            </h3>
+            <div className="p-5 rounded-xl border border-white/5 bg-[#111111]">
+              <p className="text-[14px] text-zinc-300 leading-relaxed font-light">
+                This document represents a {metadataJSON.policyType || 'standard'} insurance policy issued by {metadataJSON.insurerName || 'the insurer'}.
+                Coverage limits sit at {metadataJSON.sumInsured || 'an unstated amount'}, accompanied by standard deductibles.
+                Our reasoning engine indicates a risk score of {riskScore}/100 based on clause evaluations. Monitor key exclusions regarding structural limits.
+              </p>
+            </div>
+          </section>
+
+          {/* Risk Flags */}
+          <section className="space-y-4">
+            <h3 className="text-[13px] font-semibold tracking-widest text-zinc-500 uppercase flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500" /> Risk Flags
+            </h3>
+            <div className="rounded-xl border border-amber-500/10 bg-[#111111] p-5">
               {flags.length === 0 ? (
-                <div className="flex items-center gap-2 text-green-600 font-medium">
-                  <CheckCircle2 className="w-5 h-5" /> No critical risk flags detected.
+                <div className="flex items-center gap-2 text-zinc-400 text-[14px]">
+                  <CheckCircle2 className="w-4 h-4 text-zinc-500" /> No critical risk flags detected during pass.
                 </div>
               ) : (
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {flags.map((flag: string, idx: number) => (
-                    <li key={idx} className="flex gap-3 bg-destructive/5 p-3 rounded-md text-sm leading-relaxed border border-destructive/10">
-                      <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-                      <span>{flag}</span>
+                    <li key={idx} className="flex gap-3 text-[14px] leading-relaxed">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0"></div>
+                      <span className="text-amber-500/90">{flag}</span>
                     </li>
                   ))}
                 </ul>
               )}
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </section>
 
-        {/* Right Col - Interact Tools */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader className="bg-blue-50/50 dark:bg-blue-900/10 border-b">
-              <CardTitle className="text-lg text-blue-700 dark:text-blue-400">Claim Simulator</CardTitle>
-              <CardDescription>Describe a scenario to see if you are covered and estimate payouts.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 space-y-4">
-              <div className="space-y-2">
-                <Input 
-                   placeholder="e.g. Tree fell on my garage and broke roof." 
-                   value={simScenario} 
-                   onChange={e => setSimScenario(e.target.value)} 
-                   onKeyDown={e => e.key === 'Enter' && handleSimulate()}
-                />
-                <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={handleSimulate} disabled={simLoading || !simScenario}>
-                  {simLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : "Simulate Claim"}
-                </Button>
+          {/* Scenario Simulator */}
+          <section className="space-y-4">
+            <h3 className="text-[13px] font-semibold tracking-widest text-zinc-500 uppercase flex items-center gap-2">
+              <Activity className="w-4 h-4 text-indigo-400" /> Scenario Simulator
+            </h3>
+            <div className="rounded-xl border border-white/5 bg-[#111111] p-5 space-y-5">
+              <div className="space-y-3">
+                <label className="text-[13px] text-zinc-400">Describe an event to simulate coverage logic.</label>
+                <div className="flex gap-2">
+                  <Input
+                    className="bg-black/50 border-white/10 text-[14px] h-10 placeholder:text-zinc-600 focus-visible:ring-indigo-500/30"
+                    placeholder="e.g. Broken roof caused by fallen tree."
+                    value={simScenario}
+                    onChange={e => setSimScenario(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleSimulate()}
+                  />
+                  <Button
+                    className="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 h-10 px-4 transition-colors"
+                    onClick={handleSimulate}
+                    disabled={simLoading || !simScenario}
+                  >
+                    {simLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Run"}
+                  </Button>
+                </div>
               </div>
 
               {sim && (
-                <div className="bg-secondary p-4 rounded-lg text-sm space-y-3 border shadow-inner">
-                   <div className="flex justify-between items-start">
-                     <span className="font-semibold text-muted-foreground">Coverage Status:</span>
-                     <Badge variant={sim.covered === 'Yes' ? 'default' : sim.covered === 'Conditional' ? 'secondary' : 'destructive'}>
-                       {sim.covered}
-                     </Badge>
-                   </div>
-                   <div className="grid grid-cols-2 gap-4 mt-2">
-                     <div>
-                       <span className="block text-xs text-muted-foreground mb-1">AI Payout Est.</span>
-                       <span className="font-medium">{sim.estimatedPayout || 'N/A'}</span>
-                     </div>
-                     <div>
-                       <span className="block text-xs text-muted-foreground mb-1">Out of Pocket</span>
-                       <span className="font-medium text-destructive">{sim.outOfPocket || 'N/A'}</span>
-                     </div>
-                   </div>
-                   <div className="pt-2 border-t text-xs text-muted-foreground">
-                     <span className="block font-semibold mb-1">Relevant Clause:</span>
-                     <span className="italic">{sim.clauseReference || 'None referenced'}</span>
-                   </div>
+                <div className="pt-4 border-t border-white/5 space-y-4 slide-in-from-top-2 animate-in duration-300">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13px] text-zinc-400">Status</span>
+                    <span className={`text-[13px] font-medium px-2.5 py-1 rounded-md ${sim.covered === 'Yes' ? 'bg-zinc-800 text-zinc-100' :
+                      sim.covered === 'Conditional' ? 'bg-amber-500/10 text-amber-500' :
+                        'bg-red-500/10 text-red-400'
+                      }`}>
+                      {sim.covered}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="block text-[12px] text-zinc-500 mb-1">Estimated Payout</span>
+                      <span className="text-[14px] font-medium text-zinc-100">{sim.estimatedPayout || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[12px] text-zinc-500 mb-1">Out of Pocket</span>
+                      <span className="text-[14px] font-medium text-zinc-100">{sim.outOfPocket || 'N/A'}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-black/40 rounded-lg border border-white/5 text-[12px]">
+                    <span className="block text-zinc-500 mb-1">Triggered Clause</span>
+                    <span className="text-zinc-300 italic">{sim.clauseReference || 'None discovered'}</span>
+                  </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </section>
 
-          <Card className="flex flex-col h-[400px]">
-            <CardHeader className="py-3 border-b">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MessageSquare className="w-4 h-4" /> Ask Flow AI
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 p-0 flex flex-col overflow-hidden">
-               <ScrollArea className="flex-1 p-4 space-y-4">
-                 {chatHistory.length === 0 ? (
-                    <div className="text-center h-full flex items-center justify-center text-sm text-muted-foreground italic opacity-70">
-                      Ask any question about deductibles, renewals, or obscure clauses. Max 10 messages.
-                    </div>
-                 ) : (
-                    <div className="space-y-4">
-                      {chatHistory.map((c, i) => (
-                        <div key={i} className={`flex ${c.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`text-sm py-2 px-3 rounded-2xl max-w-[85%] ${
-                             c.role === 'user' 
-                               ? 'bg-blue-600 text-primary-foreground rounded-tr-sm' 
-                               : 'bg-muted rounded-tl-sm border border-border'
-                          }`}>
-                            {c.text}
-                          </div>
-                        </div>
-                      ))}
-                      {chatLoading && (
-                         <div className="flex justify-start">
-                            <div className="text-sm py-2 px-3 bg-muted rounded-2xl rounded-tl-sm max-w-[85%] border border-border flex items-center gap-2">
-                               <Loader2 className="w-3 h-3 animate-spin" /> Thinking...
-                            </div>
-                         </div>
-                      )}
-                      <div ref={chatEndRef} />
-                    </div>
-                 )}
-               </ScrollArea>
-            </CardContent>
-            <CardFooter className="p-3 border-t">
-               <div className="flex w-full items-center gap-2">
-                 <Input 
-                   placeholder="Ask a question..." 
-                   value={chatMessage} 
-                   onChange={e => setChatMessage(e.target.value)} 
-                   onKeyDown={e => e.key === 'Enter' && handleChat()}
-                   disabled={chatLoading}
-                 />
-                 <Button size="sm" onClick={handleChat} disabled={chatLoading || !chatMessage.trim()}>Send</Button>
-               </div>
-            </CardFooter>
-          </Card>
         </div>
       </div>
     </div>
