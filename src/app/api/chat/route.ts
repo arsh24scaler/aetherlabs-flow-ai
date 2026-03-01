@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkChatLimit, checkGlobalTokenLimit, redis } from '@/lib/redis-rate-limit';
 import { queryPolicy } from '@/lib/gemini';
-import { connectToDatabase, Report } from '@/lib/db';
+import { connectToDatabase, Report, UsageRecord } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
     try {
@@ -27,6 +27,15 @@ export async function POST(req: NextRequest) {
         // Update database with slightly higher token footprint
         await connectToDatabase();
         await Report.findOneAndUpdate({ jobId }, { $inc: { tokensUsed: result.tokens } });
+
+        // Log granular usage
+        const ip = req.headers.get('x-forwarded-for') || 'unknown';
+        await UsageRecord.create({
+            jobId,
+            type: 'CHAT',
+            tokensUsed: result.tokens,
+            ip
+        });
 
         return NextResponse.json({ reply: result.response });
 

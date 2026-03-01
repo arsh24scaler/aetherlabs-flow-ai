@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkGlobalTokenLimit, redis } from '@/lib/redis-rate-limit';
-import { connectToDatabase, Report } from '@/lib/db';
+import { connectToDatabase, Report, UsageRecord } from '@/lib/db';
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 import { incrementGlobalTokens } from '@/lib/redis-rate-limit';
 
@@ -63,6 +63,15 @@ ${contextText}
         
         await connectToDatabase();
         await Report.findOneAndUpdate({ jobId }, { $inc: { tokensUsed: tokenEstimate } });
+
+        // Log granular usage
+        const ip = req.headers.get('x-forwarded-for') || 'unknown';
+        await UsageRecord.create({
+            jobId,
+            type: 'SIMULATION',
+            tokensUsed: tokenEstimate,
+            ip
+        });
 
         return NextResponse.json(parsed);
 

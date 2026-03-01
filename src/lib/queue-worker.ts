@@ -1,7 +1,7 @@
 import { ServiceBusClient, ServiceBusReceivedMessage, ProcessErrorArgs } from "@azure/service-bus";
 import { parsePdfWithFallback } from "./pdf-parser";
 import { analyzePolicyText } from "./gemini";
-import { connectToDatabase, Report } from "./db";
+import { connectToDatabase, Report, UsageRecord } from "./db";
 import { hashDocument, getCachedAnalysis, setCachedAnalysis, redis } from "./redis-rate-limit";
 import http from "http";
 
@@ -91,6 +91,13 @@ export async function processQueue() {
               flags: (analysisResult as { flags: string[] }).flags,
               tokensUsed: (analysisResult as { tokensUsed: number }).tokensUsed || 0,
               usedOCR: usedOCR
+          });
+
+          // Log granular usage
+          await UsageRecord.create({
+              jobId,
+              type: 'ANALYSIS',
+              tokensUsed: (analysisResult as { tokensUsed: number }).tokensUsed || 0
           });
 
       // We complete the message from the queue on success

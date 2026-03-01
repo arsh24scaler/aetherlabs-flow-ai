@@ -60,5 +60,20 @@ const reportSchema = new mongoose.Schema({
   timestamps: true 
 });
 
+/**
+ * UsageRecord Schema
+ * Granular tracking for every AI interaction.
+ */
+const usageRecordSchema = new mongoose.Schema({
+  jobId: { type: String, required: true, index: true },
+  type: { type: String, enum: ['ANALYSIS', 'CHAT', 'SIMULATION'], required: true },
+  model: { type: String, default: 'gemini-2.0-flash' },
+  tokensUsed: { type: Number, required: true },
+  ip: { type: String }, // Optional for identifying hotspots
+}, {
+  timestamps: true
+});
+
 // Avoid 'OverwriteModelError' warning internally in Next.js development
 export const Report = mongoose.models.Report || mongoose.model('Report', reportSchema);
+export const UsageRecord = mongoose.models.UsageRecord || mongoose.model('UsageRecord', usageRecordSchema);
