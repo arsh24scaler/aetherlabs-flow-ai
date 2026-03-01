@@ -34,7 +34,7 @@ redisClient.on('error', (err) => console.error('Redis Client Error', err));
 
 export const redis = redisClient;
 
-// Abuse Shields Configuration
+// Abuse Shields Configuratio
 const MAX_UPLOADS_PER_IP_HR = parseInt(process.env.MAX_UPLOADS_PER_IP_HR || '2', 10);
 const GLOBAL_DAILY_TOKEN_LIMIT = parseInt(process.env.GLOBAL_DAILY_TOKEN_LIMIT || '50000000', 10);
 const MAX_CHAT_PER_POLICY = parseInt(process.env.MAX_CHAT_PER_POLICY || '10', 10);
