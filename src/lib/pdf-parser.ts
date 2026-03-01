@@ -1,3 +1,4 @@
+// @ts-ignore: pdf-parse types incorrectly declare no default export
 import pdfParse from 'pdf-parse';
 
 export async function parsePdfWithFallback(pdfBuffer: Buffer): Promise<{ text: string, usedOCR: boolean }> {
