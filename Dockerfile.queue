@@ -2,6 +2,6 @@ FROM node:20-alpine
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev
+RUN npm install tsx --no-save
 COPY . .
-RUN npx tsc
-CMD ["node", "dist/lib/queue-worker.js"]
+CMD ["npx", "tsx", "src/lib/queue-worker.ts"]
