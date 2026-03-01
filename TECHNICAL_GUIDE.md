@@ -72,6 +72,26 @@ The projects security gatekeeper. It handles the `FixedWindow` rate limiting alg
 
 ---
 
+## 💻 Local Development Workflow
+
+To ensure a seamless experience, the project uses `concurrently` to manage the frontend and backend worker in a single terminal session.
+
+### **1. Running the Full Stack**
+```bash
+npm run dev
+```
+- Starts Next.js on `localhost:3000`.
+- Starts the queue worker using `tsx watch` for hot-reloading.
+
+### **2. Running Independently**
+- **Frontend only**: `next dev`
+- **Worker only**: `npm run dev:worker` (Useful for debugging specific queue logic).
+
+### **3. Environment Setup**
+The application reads from `.env` or `.env.local`. Ensure all keys discovered in the production deployment are mirrored here for full functionality (OCR, Service Bus, Redis).
+
+---
+
 ## 🧪 Testing & Quality
 - **Husky Pre-commit**: Automatically runs `npm run build` and `npm run lint` before every commit to ensure code quality.
 - **Playwright**: E2E tests for the upload and analysis flow (`tests/functionality.spec.ts`).

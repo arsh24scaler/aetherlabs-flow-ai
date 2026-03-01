@@ -25,7 +25,9 @@ This platform must be 100% isolated from `aetherlabs-flow-vm`. You need to initi
 5. **Azure Computer Vision**:
    - Basic tier. Used strictly as fallback OCR when `pdf-parse` extracts fewer than 500 characters.
 
-### Environment Secrets List (`.env.production`):
+### Local & Production Secrets (`.env`):
+For local development, create a `.env` file in the root. For production, these must be set as secrets in the Azure Container App.
+
 ```env
 # Database & Cache
 MONGODB_URI="mongodb+srv://..."

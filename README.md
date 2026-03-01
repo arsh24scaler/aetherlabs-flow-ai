@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Flow AI – Policy Intelligence Engine
 
-## Getting Started
+Flow AI is a high-performance, event-driven policy analysis tool built with Next.js and Google Gemini. It automates the extraction of risks, flags, and metadata from complex insurance and compliance documents, providing a premium fintech-style dashboard for analysis and interactive Q&A.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🏗️ Technical Stack
+
+- **Frontend**: [Next.js 16](https://nextjs.org/) (App Router, Turbopack), [Framer Motion](https://www.framer.com/motion/) (Animations).
+- **Backend / API**: Next.js Server Actions & API Routes.
+- **AI Engine**: [Google Gemini 1.5 Flash](https://ai.google.dev/models/gemini).
+- **OCR Fallback**: [Azure Computer Vision v3.2](https://azure.microsoft.com/en-us/services/cognitive-services/computer-vision/).
+- **Database**: [MongoDB](https://www.mongodb.com/) (Mongoose).
+- **Caching & Rate Limiting**: [Azure Cache for Redis](https://azure.microsoft.com/en-us/products/cache/).
+- **Processing Queue**: [Azure Service Bus](https://azure.microsoft.com/en-us/products/service-bus/).
+- **Development Tools**: [Concurrently](https://www.npmjs.com/package/concurrently), [tsx](https://www.npmjs.com/package/tsx), [Husky](https://typicode.github.io/husky/).
+
+---
+
+## 🛠️ Local Development Setup
+
+### 1. Prerequisites
+Ensure you have the following installed:
+- [Node.js 20+](https://nodejs.org/)
+- [Docker](https://www.docker.com/) (Optional, for local image verification)
+
+### 2. Environment Variables
+Create a `.env` or `.env.local` file in the root directory. You can use the provided keys or your own.
+
+```env
+# Database & Cache
+MONGODB_URI="your_mongodb_connection_string"
+REDIS_URL="your_redis_connection_string"
+
+# AI Integrations
+GEMINI_API_KEY="your_google_ai_key"
+AZURE_VISION_ENDPOINT="your_azure_vision_endpoint"
+AZURE_VISION_KEY="your_azure_vision_key"
+
+# Queues
+SERVICE_BUS_CONNECTION_STRING="your_service_bus_connection_string"
+
+# Failsafes & Thresholds
+MAX_UPLOADS_PER_IP_HR=2
+GLOBAL_DAILY_TOKEN_LIMIT=50000000
+MAX_CHAT_PER_POLICY=10
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Installation
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. Running the Application
+To start both the **Next.js Frontend** and the **Background Queue Worker** simultaneously:
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+If you only need to run one service:
+- `next dev`: Starts only the web frontend.
+- `npm run dev:worker`: Starts only the background queue processor (with hot-reloading).
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🧪 Testing
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Automated E2E Tests (Playwright)
+```bash
+npx playwright test
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Stress Testing (K6)
+```bash
+npx k6 run tests/stress.k6.js
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔐 System Failsafes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Global Cost Kill Switch**: Redis-backed daily tracking of aggregate Gemini token usage (Prevents billing shocks).
+2. **IP Rate Limiter**: 2 uploads/hour limit enforced at the API level via Redis.
+3. **Queue Redundancy**: If the worker crashes, the PDF job remains in the Azure Service Bus queue for retry or moves to the dead-letter queue.
+
+---
+
+## 📚 Documentation
+- [Technical Architecture Guide](TECHNICAL_GUIDE.md)
+- [Operations & Testing Guide](OPERATIONS_AND_TESTING_GUIDE.md)
+- [Production Deployment Plan](deployment.md)
+
