@@ -2,13 +2,33 @@ import Redis from 'ioredis';
 import crypto from 'crypto';
 
 // Initialize Redis 
-const redisClient = process.env.REDIS_URL 
-    ? new Redis(process.env.REDIS_URL)
-    // Fallback or memory mock if needed, but in production this strictly connects to Azure Cache for Redis
-    : new Redis({
+let redisClient: Redis;
+
+if (process.env.REDIS_URL) {
+    if (process.env.REDIS_URL.includes(',')) {
+        // Parse Azure Cache for Redis connection string format
+        const parts = process.env.REDIS_URL.split(',');
+        const hostPort = parts[0].split(':');
+        const passwordPart = parts.find(p => p.startsWith('password='));
+        const isSsl = parts.some(p => p.toLowerCase() === 'ssl=true');
+        
+        redisClient = new Redis({
+            host: hostPort[0],
+            port: parseInt(hostPort[1], 10) || 6380,
+            password: passwordPart ? passwordPart.substring(9) : undefined,
+            tls: isSsl ? {} : undefined
+        });
+    } else {
+        // Standard Redis URI format
+        redisClient = new Redis(process.env.REDIS_URL);
+    }
+} else {
+    // Fallback or memory mock if needed
+    redisClient = new Redis({
         host: 'localhost',
         port: 6379
     });
+}
 
 redisClient.on('error', (err) => console.error('Redis Client Error', err));
 
