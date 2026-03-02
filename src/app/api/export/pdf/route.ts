@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
         doc.text('Policy Overview', 20, 85);
 
         let yPos = 95;
-        const printRow = (key: string, value: any) => {
+        const printRow = (key: string, value: unknown) => {
             if (!value || String(value) === "N/A" || String(value) === "null") return;
             doc.setFontSize(10);
             doc.setTextColor('#4b5563');

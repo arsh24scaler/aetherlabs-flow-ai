@@ -112,7 +112,7 @@ ${docText}`;
         });
 
         // Footer
-        const finalPage = (doc.internal as any).getNumberOfPages();
+        const finalPage = (doc.internal as unknown as { getNumberOfPages: () => number }).getNumberOfPages();
         for (let i = 1; i <= finalPage; i++) {
             doc.setPage(i);
             doc.setFontSize(9);

@@ -39,7 +39,7 @@ const TypewriterEffect = ({ text, isLatest }: { text: string; isLatest: boolean 
 
   useEffect(() => {
     if (!isLatest) {
-      setDisplayedText(text);
+      setTimeout(() => setDisplayedText(text), 0);
       return;
     }
 
@@ -487,7 +487,7 @@ export default function Home() {
                     const riskLabel = rs >= 70 ? "High Risk" : rs >= 40 ? "Moderate Risk" : "Low Risk"
 
                     // Display missing fields as "Not Specified" rather than dropping them
-                    const validRows = (rows: { label: string, value: any }[]) => rows.map((row) => {
+                    const validRows = (rows: { label: string, value: unknown }[]) => rows.map((row) => {
                       const isEmpty = !row.value || String(row.value) === "N/A" || String(row.value) === "null" || String(row.value).trim() === ""
                       return { label: row.label, value: isEmpty ? "Not Specified" : row.value }
                     })

@@ -51,13 +51,13 @@ ${docText}`;
             rawContent = rawContent.replace(/^```json/i, '').replace(/```$/, '').trim();
         }
 
-        let dataRows: Record<string, any>[] = [];
+        let dataRows: Record<string, unknown>[] = [];
         try {
             dataRows = JSON.parse(rawContent);
             if (!Array.isArray(dataRows)) {
                 dataRows = [dataRows];
             }
-        } catch (e) {
+        } catch {
             console.error("Failed to parse Gemini JSON output for dynamic excel:", rawContent);
             dataRows = [{ "Error": "Failed to extract clean tabular data." }];
         }

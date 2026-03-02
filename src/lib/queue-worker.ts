@@ -99,7 +99,7 @@ export async function processQueue() {
 
             // Update Database
             console.log(`[QueueWorker] Job ${jobId} updating Cosmos DB...`);
-            const metadata = (analysisResult as { metadata?: any }).metadata || {};
+            const metadata = (analysisResult as { metadata?: unknown }).metadata || {};
             const suggestedQuestions = metadata.suggestedQuestions || (analysisResult as { suggestedQuestions?: string[] }).suggestedQuestions || [];
             await Report.findOneAndUpdate({ jobId }, {
                 status: 'COMPLETED',
