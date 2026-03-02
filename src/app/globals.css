@@ -45,7 +45,58 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  --animate-noise-dance: noise-dance 1s infinite steps(2);
+  --animate-mesh-pan: mesh-pan 20s linear infinite;
+  --animate-pulse-waveform: pulse-waveform 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-rotate-wireframe: rotate-wireframe 10s linear infinite;
+  --animate-caret-pulse: caret-pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-float: float 4s ease-in-out infinite;
+
+  @keyframes noise-dance {
+    0% { transform: translate(0,0) }
+    10% { transform: translate(-5%,-5%) }
+    20% { transform: translate(-10%,5%) }
+    30% { transform: translate(5%,-10%) }
+    40% { transform: translate(-5%,15%) }
+    50% { transform: translate(-10%,5%) }
+    60% { transform: translate(15%,0) }
+    70% { transform: translate(0,10%) }
+    80% { transform: translate(-15%,0) }
+    90% { transform: translate(10%,5%) }
+    100% { transform: translate(5%,0) }
+  }
+  @keyframes gradient-shimmer {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @keyframes draw-shield {
+    from { stroke-dashoffset: 100; opacity: 0.5; }
+    to { stroke-dashoffset: 0; opacity: 1; }
+  }
+  @keyframes mesh-pan {
+    from { transform: translate(0, 0) }
+    to { transform: translate(-40px, -40px) }
+  }
+  @keyframes pulse-waveform {
+    0%, 100% { transform: scaleY(1); opacity: 1; }
+    50% { transform: scaleY(0.6); opacity: 0.7; }
+  }
+  @keyframes rotate-wireframe {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes caret-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-6px) rotate(1deg); }
+  }
 }
+
 
 :root {
   --radius: 0.625rem;

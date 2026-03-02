@@ -11,9 +11,9 @@ function getGeminiModel() {
     if (_model) return _model;
     const API_KEY = process.env.GEMINI_API_KEY;
     if (!API_KEY) throw new Error("Missing Gemini key.");
-    
+
     _genAI = new GoogleGenerativeAI(API_KEY);
-    _model = _genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    _model = _genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     return _model;
 }
 
@@ -50,7 +50,7 @@ ${contextText}
         const model = getGeminiModel();
         const result = await model.generateContent(systemPrompt);
         const text = result.response.text().trim();
-        
+
         let rawJson = text;
         if (rawJson.startsWith('```json')) {
             rawJson = rawJson.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -58,9 +58,9 @@ ${contextText}
 
         const parsed = JSON.parse(rawJson);
         const tokenEstimate = Math.ceil((systemPrompt.length + text.length) / 4);
-        
+
         await incrementGlobalTokens(tokenEstimate);
-        
+
         await connectToDatabase();
         await Report.findOneAndUpdate({ jobId }, { $inc: { tokensUsed: tokenEstimate } });
 

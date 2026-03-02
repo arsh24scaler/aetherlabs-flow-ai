@@ -49,15 +49,15 @@ const reportSchema = new mongoose.Schema({
   jobId: { type: String, required: true, unique: true },
   status: { type: String, enum: ['QUEUED', 'PROCESSING', 'COMPLETED', 'ERROR'], default: 'QUEUED' },
   policyHash: { type: String }, // To connect with Redis Cache
-  metadataJSON: { type: Object }, 
+  metadataJSON: { type: Object },
   riskScore: { type: Number },
-  flags: { type: Array }, 
+  flags: { type: Array },
   tokensUsed: { type: Number, default: 0 },
   agentConversionClicked: { type: Boolean, default: false },
   usedOCR: { type: Boolean, default: false }, // To track whether Computer Vision was fired
   errorLog: { type: String }
 }, {
-  timestamps: true 
+  timestamps: true
 });
 
 /**
@@ -74,6 +74,14 @@ const usageRecordSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Lead Schema for captured emails
+const leadSchema = new mongoose.Schema({
+  email: { type: String, required: true, index: true },
+  capturedAt: { type: Date, default: Date.now },
+  ip: { type: String },
+}, { timestamps: true });
+
 // Avoid 'OverwriteModelError' warning internally in Next.js development
+export const Lead = mongoose.models.Lead || mongoose.model('Lead', leadSchema);
 export const Report = mongoose.models.Report || mongoose.model('Report', reportSchema);
 export const UsageRecord = mongoose.models.UsageRecord || mongoose.model('UsageRecord', usageRecordSchema);

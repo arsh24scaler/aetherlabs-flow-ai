@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Sparkles, UserCircle } from "lucide-react";
+import { Sparkles, UserCircle, ArrowUp } from "lucide-react";
+import { AetherLabsIcon } from "@/components/AetherLabsIcon";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -22,6 +23,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Flow AI - Policy Intelligence Engine",
   description: "Decode insurance policies instantly with Flow AI.",
+  icons: {
+    icon: [
+      { url: "/logo.png?v=2" },
+      { url: "/favicon.ico?v=2" }
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -32,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-[#0a0a0a] text-zinc-100 flex flex-col font-sans`}
+        className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-[#0E1116] text-zinc-100 flex flex-col font-sans relative overflow-x-hidden`}
       >
         <ThemeProvider
           attribute="class"
@@ -40,27 +47,51 @@ export default function RootLayout({
           forcedTheme="dark"
           disableTransitionOnChange
         >
-          <header className="sticky top-0 z-50 w-full border-b border-zinc-800/50 bg-[#0a0a0a]/80 backdrop-blur-md">
-            <div className="container mx-auto max-w-6xl flex h-14 items-center justify-between px-6">
-              <div className="flex items-center gap-3 cursor-pointer">
-                <div className="flex items-center justify-center w-6 h-6 rounded-md bg-zinc-800 border border-zinc-700">
-                  <Sparkles className="w-3.5 h-3.5 text-zinc-300" />
+          {/* Subtle animated noise grain */}
+          <div className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-[0.015] mix-blend-overlay" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")', animation: 'noise-dance 1s infinite steps(2)' }} />
+
+          {/* Extremely faint animated network mesh in background */}
+          <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.02] flex items-center justify-center">
+            <div className="w-[200vw] h-[200vh] border-[1px] border-zinc-100/10 [background-size:40px_40px] [background-image:linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] animate-mesh-pan" />
+          </div>
+
+          <header className="sticky top-0 z-50 w-full border-b border-white/[0.03] bg-[#0E1116]/80 backdrop-blur-xl relative">
+            <div className="container mx-auto max-w-6xl flex h-16 items-center justify-between px-6">
+              <div className="flex items-center gap-2.5 cursor-pointer group">
+                <div className="flex items-center justify-center transition-all duration-300">
+                  <img src="/logo.png" alt="Flow AI Logo" className="w-5 h-5 object-contain" />
                 </div>
-                <span className="font-semibold text-zinc-100 tracking-tight text-[15px]">Flow AI</span>
-                <div className="w-[1px] h-4 bg-zinc-800 mx-1 hidden sm:block"></div>
-                <span className="text-zinc-500 font-medium text-[13px] hidden sm:block tracking-wide">Policy Intelligence Engine</span>
+                <div className="flex items-baseline gap-1.5 ">
+                  <span className="font-extrabold text-zinc-100 tracking-tighter text-[19px]">Flow AI</span>
+                </div>
+                <div className="w-[1px] h-4 bg-zinc-800/60 mx-1 hidden sm:block"></div>
+                <span className="text-zinc-500 font-medium text-[13px] hidden sm:block tracking-wide opacity-80">Policy Intelligence Engine</span>
               </div>
-              <div className="flex items-center gap-4">
-                <span className="text-[13px] text-zinc-500 font-medium hidden md:block tracking-wide">by AetherLabs</span>
-                <div className="w-8 h-8 rounded-full bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-center text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer">
-                  <UserCircle className="w-5 h-5" />
-                </div>
+
+              <div className="flex items-center gap-6">
+                <a
+                  href="https://aetherlabs.in"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="relative group/cta"
+                >
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-indigo-400 rounded-full blur opacity-20 group-hover/cta:opacity-40 transition duration-500"></div>
+                  <button className="relative flex items-center gap-1.5 px-5 py-2 rounded-full bg-indigo-500 hover:bg-indigo-400 text-white text-[13px] font-semibold transition-all duration-300 shadow-[0_0_15px_rgba(99,102,241,0.2)] active:scale-95">
+                    Try Flow Free
+                    <ArrowUp className="w-3.5 h-3.5 rotate-45 transition-transform duration-300 group-hover/cta:translate-x-0.5 group-hover/cta:-translate-y-0.5" />
+                  </button>
+                </a>
               </div>
             </div>
           </header>
-          <main className="flex-1 overflow-x-hidden">
+          <main className="flex-1 overflow-x-hidden relative z-10">
             {children}
           </main>
+          {/* Footer watermark */}
+          <div className="pointer-events-none fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 opacity-[0.03] grayscale">
+            <img src="/logo.png" alt="AetherLabs Logo" className="w-8 h-8" />
+            <span className="text-3xl font-bold tracking-widest uppercase">AetherLabs</span>
+          </div>
         </ThemeProvider>
       </body>
     </html>
