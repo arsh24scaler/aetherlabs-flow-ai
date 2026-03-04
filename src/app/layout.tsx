@@ -69,18 +69,6 @@ export default function RootLayout({
               </div>
 
               <div className="flex items-center gap-6">
-                <a
-                  href="https://aetherlabs.in"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="relative group/cta"
-                >
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-indigo-400 rounded-full blur opacity-20 group-hover/cta:opacity-40 transition duration-500"></div>
-                  <button className="relative flex items-center gap-1.5 px-5 py-2 rounded-full bg-indigo-500 hover:bg-indigo-400 text-white text-[13px] font-semibold transition-all duration-300 shadow-[0_0_15px_rgba(99,102,241,0.2)] active:scale-95">
-                    Try Flow Free
-                    <ArrowUp className="w-3.5 h-3.5 rotate-45 transition-transform duration-300 group-hover/cta:translate-x-0.5 group-hover/cta:-translate-y-0.5" />
-                  </button>
-                </a>
               </div>
             </div>
           </header>
