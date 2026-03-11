@@ -24,7 +24,12 @@ export async function GET(req: NextRequest) {
         const API_KEY = process.env.GEMINI_API_KEY;
         if (!API_KEY) throw new Error("Missing Gemini key");
         const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.0-flash",
+            generationConfig: {
+                responseMimeType: "application/json"
+            }
+        });
 
         const prompt = `You are an expert data analyst and insurance underwriter. Based on the provided policy document, the user has requested a custom Excel spreadsheet regarding: "${query}".
 
@@ -41,15 +46,6 @@ ${docText}`;
 
         const result = await model.generateContent(prompt);
         let rawContent = result.response.text().trim();
-
-        // More robust JSON extraction
-        const jsonMatch = rawContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-        if (jsonMatch) {
-            rawContent = jsonMatch[1].trim();
-        } else {
-            // try stripping manually if the block format is slightly off
-            rawContent = rawContent.replace(/^```json/i, '').replace(/```$/, '').trim();
-        }
 
         let dataRows: Record<string, unknown>[] = [];
         try {

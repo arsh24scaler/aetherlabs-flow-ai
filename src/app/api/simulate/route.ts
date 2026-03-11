@@ -31,7 +31,14 @@ export async function POST(req: NextRequest) {
         }
 
         const systemPrompt = `
-You are a highly analytical insurance claims simulator. Only return valid JSON predicting the outcome of the user's scenario based EXACTLY on the uploaded policy below. DO NOT HALLUCINATE OUTSIDE THE DOCUMENT.
+You are a highly analytical insurance claims simulator for the Indian market.
+Only return valid JSON predicting the outcome of the user's scenario based EXACTLY on the document below.
+
+CRITICAL RULES:
+- DOCUMENT TYPE: Insurance documents can be QUOTES (no clauses) or POLICIES (contain clauses).
+- IF DOCUMENT IS A QUOTE: A quote only shows premiums. It does NOT have legal clauses. If the document is a QUOTE, the "clauseReference" should state "N/A - This is a Quote, not a Policy" and you should provide general guidance on how a typical Indian policy handles this scenario in "covered".
+- IF DOCUMENT IS A POLICY/SCHEDULE: Use exact text.
+- DO NOT HALLUCINATE OUTSIDE THE DOCUMENT.
 
 Scenario: "${scenario}"
 
@@ -40,7 +47,7 @@ Return strictly this JSON (no markdown wrappers):
     "covered": "Yes|No|Conditional",
     "estimatedPayout": "number or text",
     "outOfPocket": "number or text",
-    "clauseReference": "Quote the exact clause handling this"
+    "clauseReference": "Quote exact clause OR 'N/A - Quote Document'"
 }
 
 Document:

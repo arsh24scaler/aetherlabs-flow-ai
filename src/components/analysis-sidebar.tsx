@@ -33,7 +33,7 @@ const clauseItems = [
     { label: "Renewal & Cancellation", query: "What are the renewal and cancellation terms?" },
 ]
 
-export function AnalysisSidebar({ report, jobId, onSend, onSetQuery, onFocusInput }: SidebarProps) {
+export function AnalysisSidebar({ report, jobId, onSend, onSetQuery, onFocusInput, className = "" }: SidebarProps & { className?: string }) {
     const [expandedFlags, setExpandedFlags] = useState<Record<number, boolean>>({})
     const [showExport, setShowExport] = useState(false)
     const exportRef = useRef<HTMLDivElement>(null)
@@ -53,7 +53,7 @@ export function AnalysisSidebar({ report, jobId, onSend, onSetQuery, onFocusInpu
     const policyType = report.metadata?.policyType ? String(report.metadata.policyType) : null
 
     return (
-        <div className="hidden lg:flex w-[320px] border-l border-white/[0.06] bg-[#0A0C10] flex-col overflow-y-auto shrink-0">
+        <div className={`flex flex-col overflow-y-auto shrink-0 ${className}`}>
             {/* Risk Score Ring */}
             <div className="px-5 py-6 border-b border-white/[0.04] flex flex-col items-center">
                 <div className="relative w-[140px] h-[140px]">
@@ -71,7 +71,9 @@ export function AnalysisSidebar({ report, jobId, onSend, onSetQuery, onFocusInpu
                     </div>
                 </div>
                 {policyType && (
-                    <span className="text-[11px] font-medium px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mt-4">{policyType}</span>
+                    <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded bg-[#c8ff00]/10 text-[#c8ff00] border border-[#c8ff00]/20 mt-4 uppercase tracking-[0.1em]">
+                        {policyType}
+                    </span>
                 )}
             </div>
 
@@ -92,7 +94,7 @@ export function AnalysisSidebar({ report, jobId, onSend, onSetQuery, onFocusInpu
                         </a>
                         <a href={`/api/export/pdf?jobId=${jobId}`} download onClick={() => setShowExport(false)}>
                             <div className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.04] transition-colors cursor-pointer">
-                                <div className="w-7 h-7 rounded-md bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center"><FileText className="w-3.5 h-3.5 text-indigo-400" /></div>
+                                <div className="w-7 h-7 rounded-md bg-[#c8ff00]/10 border border-[#c8ff00]/20 flex items-center justify-center"><FileText className="w-3.5 h-3.5 text-[#c8ff00]" /></div>
                                 <div><span className="text-[13px] text-zinc-200 font-medium block">Standard PDF Report</span><span className="text-[11px] text-zinc-500">Full policy analysis document</span></div>
                             </div>
                         </a>
@@ -102,11 +104,11 @@ export function AnalysisSidebar({ report, jobId, onSend, onSetQuery, onFocusInpu
                             <div><span className="text-[13px] text-zinc-300 font-medium block">Custom Excel</span><span className="text-[11px] text-zinc-500">Specify scope and parameters</span></div>
                         </button>
                         <button onClick={() => { setShowExport(false); onSetQuery("Generate a comprehensive PDF report outlining: "); onFocusInput() }} className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.04] transition-colors text-left">
-                            <div className="w-7 h-7 rounded-md bg-indigo-500/5 border border-indigo-500/10 flex items-center justify-center"><FileText className="w-3.5 h-3.5 text-indigo-400/60" /></div>
+                            <div className="w-7 h-7 rounded-md bg-[#c8ff00]/5 border border-[#c8ff00]/10 flex items-center justify-center"><FileText className="w-3.5 h-3.5 text-[#c8ff00]/60" /></div>
                             <div><span className="text-[13px] text-zinc-300 font-medium block">Custom PDF</span><span className="text-[11px] text-zinc-500">Specify scope and parameters</span></div>
                         </button>
                         <button onClick={() => { setShowExport(false); onSetQuery("Generate a detailed Word document report for: "); onFocusInput() }} className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.04] transition-colors text-left">
-                            <div className="w-7 h-7 rounded-md bg-blue-500/5 border border-blue-500/10 flex items-center justify-center"><FileText className="w-3.5 h-3.5 text-blue-400/60" /></div>
+                            <div className="w-7 h-7 rounded-md bg-[#c8ff00]/5 border border-[#c8ff00]/10 flex items-center justify-center"><FileText className="w-3.5 h-3.5 text-[#c8ff00]/60" /></div>
                             <div><span className="text-[13px] text-zinc-300 font-medium block">Custom Word</span><span className="text-[11px] text-zinc-500">Specify scope and parameters</span></div>
                         </button>
                     </div>
@@ -152,14 +154,14 @@ export function AnalysisSidebar({ report, jobId, onSend, onSetQuery, onFocusInpu
             {/* Clause Map */}
             <div className="px-5 py-4 border-b border-white/[0.04]">
                 <div className="flex items-center gap-2 mb-3">
-                    <FileText className="w-3.5 h-3.5 text-indigo-400" />
-                    <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-widest">Clause Map</span>
+                    <FileText className="w-3.5 h-3.5 text-[#c8ff00]" />
+                    <span className="text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-widest">Clause Map</span>
                 </div>
                 <div className="space-y-0.5">
                     {clauseItems.map((item, i) => (
                         <button key={i} onClick={() => onSend(item.query)} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-white/[0.04] transition-colors text-left group">
-                            <ChevronRight className="w-3 h-3 text-zinc-600 group-hover:text-indigo-400 transition-colors shrink-0" />
-                            <span className="text-[12px] text-zinc-400 group-hover:text-zinc-200 transition-colors">{item.label}</span>
+                            <ChevronRight className="w-3 h-3 text-zinc-600 group-hover:text-[#c8ff00] transition-colors shrink-0" />
+                            <span className="text-[12px] font-mono text-zinc-400 group-hover:text-zinc-200 transition-colors">{item.label}</span>
                         </button>
                     ))}
                 </div>
@@ -168,11 +170,11 @@ export function AnalysisSidebar({ report, jobId, onSend, onSetQuery, onFocusInpu
             {/* Quick Actions */}
             <div className="px-5 py-4">
                 <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                    <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-widest">Quick Actions</span>
+                    <Sparkles className="w-3.5 h-3.5 text-[#c8ff00]" />
+                    <span className="text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-widest">Quick Actions</span>
                 </div>
                 <div className="space-y-1.5">
-                    <button onClick={() => onSend("What are the key exclusions and limitations?")} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border border-indigo-500/10 bg-indigo-500/5 hover:bg-indigo-500/10 text-[12px] text-indigo-300 transition-colors text-left">
+                    <button onClick={() => onSend("What are the key exclusions and limitations?")} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border border-[#c8ff00]/10 bg-[#c8ff00]/5 hover:bg-[#c8ff00]/10 text-[12px] font-mono font-medium text-[#c8ff00]/90 transition-colors text-left">
                         <Search className="w-3 h-3 shrink-0" /> List Exclusions
                     </button>
                     <button onClick={() => onSend("What does this policy cover and what are the limits?")} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border border-emerald-500/10 bg-emerald-500/5 hover:bg-emerald-500/10 text-[12px] text-emerald-300 transition-colors text-left">

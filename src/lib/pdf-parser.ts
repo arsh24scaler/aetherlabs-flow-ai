@@ -1,16 +1,11 @@
-// @ts-expect-error: pdf-parse types incorrectly declare no default export
-import pdfParse from 'pdf-parse';
+// pdf-parse has ESM/CJS interop issues under tsx, so we use require directly
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfParse = require('pdf-parse');
 
 export async function parsePdfWithFallback(pdfBuffer: Buffer): Promise<{ text: string, usedOCR: boolean }> {
   try {
     // 1. STANDARD EXTRACTION
-    // TS/ESM interop can wrap default exports, so we check for nested defaults or if it's already a function
-    const parseFunc = typeof pdfParse === 'function' ? pdfParse : (pdfParse as { default?: (buf: Buffer) => Promise<{ text: string }> }).default;
-    if (typeof parseFunc !== 'function') {
-        throw new Error("Unable to resolve pdfParse function from module export: " + typeof pdfParse);
-    }
-    
-    const data = await parseFunc(pdfBuffer);
+    const data = await pdfParse(pdfBuffer);
     const extract = data.text.trim();
 
     // 2. CHECK IF COMPREHENSIVE TEXT WAS FOUND

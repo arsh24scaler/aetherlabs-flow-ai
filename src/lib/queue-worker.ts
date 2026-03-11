@@ -24,7 +24,7 @@ server.listen(PORT, () => {
 });
 
 const connectionString = process.env.SERVICE_BUS_CONNECTION_STRING;
-const queueName = "pdf-processing-queue";
+const queueName = process.env.SERVICE_BUS_QUEUE_NAME || "pdf-processing-queue";
 
 export async function processQueue() {
     if (!connectionString) {
@@ -68,10 +68,11 @@ export async function processQueue() {
 
             if (analysisResult) {
                 console.log(`[QueueWorker] Job ${jobId} found in cache. Skipping AI analysis.`);
-                // Still need to load text from Redis if possible or just rely on cache
-                // If it's a cache hit, the text should already be in Redis from a previous run or we don't need it if results are there
-                const cachedText = await redis.get(`chat:context:${jobId}`);
-                if (cachedText) text = cachedText;
+                // Still need to parse PDF to get text for chat context (new jobId won't have it yet)
+                const { text: parsedText, usedOCR: isOCR } = await parsePdfWithFallback(pdfBuffer);
+                text = parsedText;
+                usedOCR = isOCR;
+                console.log(`[QueueWorker] Job ${jobId} (cache hit) extracted ${text.length} characters for chat context.`);
             } else {
                 console.log(`[QueueWorker] Job ${jobId} cache miss. Processing PDF...`);
                 // Parse PDF
@@ -105,9 +106,11 @@ export async function processQueue() {
                 status: 'COMPLETED',
                 policyHash: hash,
                 metadataJSON: { ...(metadata || {}), suggestedQuestions },
-                riskScore: (analysisResult as { riskScore: number }).riskScore,
-                flags: (analysisResult as { flags: string[] }).flags,
-                tokensUsed: (analysisResult as { tokensUsed: number }).tokensUsed || 0,
+                riskScore: (analysisResult as any).riskScore,
+                riskScoreRationale: (analysisResult as any).riskScoreRationale,
+                visualizations: (analysisResult as any).visualizations,
+                flags: (analysisResult as any).flags,
+                tokensUsed: (analysisResult as any).tokensUsed || 0,
                 usedOCR: usedOCR
             }, {});
 

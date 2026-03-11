@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase, Report } from '@/lib/db';
 
 export async function GET(
-    req: NextRequest, 
+    req: NextRequest,
     { params }: { params: Promise<{ jobId: string }> }
 ) {
     try {
         const { jobId } = await params;
-        
+
         await connectToDatabase();
         const report = await Report.findOne({ jobId });
 
@@ -24,6 +24,7 @@ export async function GET(
                 status: report.status,
                 metadata: report.metadataJSON,
                 riskScore: report.riskScore,
+                visualizations: report.visualizations,
                 flags: report.flags,
                 policyHash: report.policyHash,
                 usedOCR: report.usedOCR, // for tests

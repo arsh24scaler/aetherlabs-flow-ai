@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
         const conn = process.env.SERVICE_BUS_CONNECTION_STRING;
         if (conn) {
             const sbClient = new ServiceBusClient(conn);
-            const sender = sbClient.createSender("pdf-processing-queue");
+            const sender = sbClient.createSender(process.env.SERVICE_BUS_QUEUE_NAME || "pdf-processing-queue");
             await sender.sendMessages({
                 body: {
                     jobId,

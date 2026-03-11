@@ -51,6 +51,8 @@ const reportSchema = new mongoose.Schema({
   policyHash: { type: String }, // To connect with Redis Cache
   metadataJSON: { type: Object },
   riskScore: { type: Number },
+  riskScoreRationale: { type: String },
+  visualizations: { type: Object },
   flags: { type: Array },
   tokensUsed: { type: Number, default: 0 },
   agentConversionClicked: { type: Boolean, default: false },

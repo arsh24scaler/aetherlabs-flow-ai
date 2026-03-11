@@ -36,6 +36,7 @@ CRITICAL INSTRUCTIONS:
 3. Do NOT use complicated markdown elements like tables or code blocks.
 4. If there are clauses, explain each clause clearly.
 5. If at least some context is found but it's sparse, construct a brief report anyway.
+6. STRICT RULE: DO NOT use any emojis, icons, or special unicode characters under any circumstances, as they will crash the PDF generator.
 
 DOCUMENT:
 ${docText}`;
